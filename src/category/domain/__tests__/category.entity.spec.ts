@@ -2,6 +2,10 @@ import { Uuid } from '../../../shared/domain/value-objects/uuid.vo';
 import { Category } from '../category.entity';
 
 describe('Category Unit Tests', () => {
+  let validateSPy: any;
+  beforeEach(() => {
+    validateSPy = jest.spyOn(Category, 'validate');
+  });
   describe('constructor', () => {
     test('should create a category passing only the name', () => {
       const category = new Category({
@@ -43,6 +47,8 @@ describe('Category Unit Tests', () => {
       expect(category.description).toBeNull();
       expect(category.is_active).toBeTruthy();
       expect(category.created_at).toBeInstanceOf(Date);
+      expect(validateSPy).toBeCalledWith(category);
+      expect(validateSPy).toHaveBeenCalledTimes(1);
     });
 
     test('should create a category with description', () => {
@@ -56,6 +62,8 @@ describe('Category Unit Tests', () => {
       expect(category.description).toBe('Movies category');
       expect(category.is_active).toBeTruthy();
       expect(category.created_at).toBeInstanceOf(Date);
+      expect(validateSPy).toBeCalledWith(category);
+      expect(validateSPy).toHaveBeenCalledTimes(1);
     });
 
     test('should create a category with is_active', () => {
@@ -69,6 +77,8 @@ describe('Category Unit Tests', () => {
       expect(category.description).toBeNull();
       expect(category.is_active).toBeFalsy();
       expect(category.created_at).toBeInstanceOf(Date);
+      expect(validateSPy).toBeCalledWith(category);
+      expect(validateSPy).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -106,6 +116,8 @@ describe('Category Unit Tests', () => {
       category.changeName('Books');
 
       expect(category.name).toBe('Books');
+      expect(validateSPy).toBeCalledWith(category);
+      expect(validateSPy).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -118,6 +130,8 @@ describe('Category Unit Tests', () => {
       category.changeDescription('Movies category');
 
       expect(category.description).toBe('Movies category');
+      expect(validateSPy).toBeCalledWith(category);
+      expect(validateSPy).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -143,6 +157,18 @@ describe('Category Unit Tests', () => {
       category.deactivate();
 
       expect(category.is_active).toBeFalsy();
+    });
+  });
+});
+
+describe('Category Validator', () => {
+  describe('create command', () => {
+    test('should throw an error when name is empty', () => {
+      expect(() => {
+        Category.create({
+          name: '',
+        });
+      }).toThrow();
     });
   });
 });
