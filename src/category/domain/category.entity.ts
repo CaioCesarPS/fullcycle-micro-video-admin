@@ -1,6 +1,7 @@
-import { ValidatorRules } from "../../shared/domain/validators/validator-rules";
-import { Uuid } from "../../shared/domain/value-objects/uuid.vo";
-import { CategoryValidatorFactory } from "./category.validator";
+import { ValidatorRules } from '../../shared/domain/validators/validator-rules';
+import { EntityValidationError } from '../../shared/domain/validators/validator.errors';
+import { Uuid } from '../../shared/domain/value-objects/uuid.vo';
+import { CategoryValidatorFactory } from './category.validator';
 
 export type CategoryConstructorProps = {
   category_id?: Uuid;
@@ -33,29 +34,36 @@ export class Category {
 
   //this is a factory method
   static create(props: CategoryCreateCommand) {
-    return new Category(props)
+    const category = new Category(props);
+    Category.validate(category);
+    return category;
   }
 
   changeName(name: string): void {
-    ValidatorRules.values(name, 'name').required().string()
+    // ValidatorRules.values(name, 'name').required().string()
     this.name = name;
-  };
+    Category.validate(this);
+  }
 
   changeDescription(description: string): void {
     this.description = description;
-  };
+    Category.validate(this);
+  }
 
   activate(): void {
     this.is_active = true;
-  };
+  }
 
   deactivate(): void {
     this.is_active = false;
-  };
+  }
 
   static validate(entity: Category) {
     const validator = CategoryValidatorFactory.create();
-    return validator.validate(entity);
+    const isValid = validator.validate(entity);
+    if (!isValid) {
+      throw new EntityValidationError(validator.errors);
+    }
   }
 
   toJson() {
@@ -65,8 +73,6 @@ export class Category {
       description: this.description,
       is_active: this.is_active,
       created_at: this.created_at,
-    }
+    };
   }
-
-
 }
