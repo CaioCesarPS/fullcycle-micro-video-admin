@@ -1,3 +1,4 @@
+import { EntityValidationError } from '../../../shared/domain/validators/validator.errors';
 import { Uuid } from '../../../shared/domain/value-objects/uuid.vo';
 import { Category } from '../category.entity';
 
@@ -163,12 +164,82 @@ describe('Category Unit Tests', () => {
 
 describe('Category Validator', () => {
   describe('create command', () => {
-    test('should throw an error when name is empty', () => {
-      expect(() => {
-        Category.create({
-          name: '',
+    describe('name', () => {
+      test('should throw an error when name is null', () => {
+        expect(() => Category.create({ name: null })).containsErrorMessages({
+          name: [
+            'name should not be empty',
+            'name must be a string',
+            'name must be shorter than or equal to 255 characters',
+          ],
         });
-      }).toThrow();
+      });
+
+      test('should throw an error when name is empty string', () => {
+        expect(() => Category.create({ name: '' })).containsErrorMessages({
+          name: ['name should not be empty'],
+        });
+      });
+
+      test('should throw an error when name is longer than 255 characters', () => {
+        expect(() =>
+          Category.create({
+            name: 'a'.repeat(256),
+          })
+        ).containsErrorMessages({
+          name: ['name must be shorter than or equal to 255 characters'],
+        });
+      });
+
+      test('should throw an error if name is not a string', () => {
+        expect(() =>
+          Category.create({
+            name: 123 as any,
+          })
+        ).containsErrorMessages({
+          name: [
+            'name must be a string',
+            'name must be shorter than or equal to 255 characters',
+          ],
+        });
+      });
+    });
+
+    describe('description', () => {
+      test('should throw an error when description is longer than 255 characters', () => {
+        expect(() =>
+          Category.create({
+            name: 'Movie',
+            description: 'a'.repeat(256),
+          })
+        ).containsErrorMessages({
+          description: ['description must be shorter than or equal to 255 characters'],
+        });
+      });
+
+      test('should throw an error if description is not a string', () => {
+        expect(() =>
+          Category.create({
+            name: 'Movie',
+            description: 123 as any,
+          })
+        ).containsErrorMessages({
+          description: ['description must be a string'],
+        });
+      });
+    });
+
+    describe('is_active', () => {
+      test('should throw an error if is_active is not a boolean', () => {
+        expect(() =>
+          Category.create({
+            name: 'Movie',
+            is_active: 123 as any,
+          })
+        ).containsErrorMessages({
+          is_active: ['is_active must be a boolean value'],
+        });
+      });
     });
   });
 });
